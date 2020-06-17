@@ -1,7 +1,7 @@
 version: "3.7"
 services:
   redis:
-    image: "redis"
+    image: "redis:alpine"
     command: redis-server /redis.conf
     ports:
       - "6379:6379"
@@ -14,6 +14,6 @@ services:
     ports:
       - "5000:5000"
     volumes:
-      - /home/pedro/learn/git_home/IP-Proxy-Pool:/code
+      - <YourAbsolutePath>/IP-Proxy-Pool:/code
     depends_on:
       - redis

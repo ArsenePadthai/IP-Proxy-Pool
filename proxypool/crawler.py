@@ -11,7 +11,7 @@ from random_useragent.random_useragent import Randomize
 r_agent = Randomize()
 platform = ['windows', 'mac', 'linux']
 
-headers = {
+HEADERS = {
     'User-Agent': '',
     'Accept-Encoding': 'gzip, deflate, sdch',
     'Accept-Language': 'en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7'
@@ -37,7 +37,7 @@ class Crawler(object, metaclass=ProxyMetaclass):
 
     def get_proxies(self, callback):
         proxies = []
-        for proxy in eval("self.{}()".format(callback)):
+        for proxy in eval(f"self.{callback}()"):
             proxies.append(proxy)
         return proxies
 

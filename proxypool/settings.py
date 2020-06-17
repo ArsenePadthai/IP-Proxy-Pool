@@ -5,7 +5,7 @@ REDIS_HOST = 'redis'
 REDIS_PORT = 6379
 
 # Redis密码，如无填None
-REDIS_PASSWORD = 'password'
+REDIS_PASSWORD = 'wsxcv123'
 
 # redis中存储代理的键名
 REDIS_KEY = 'proxies'
