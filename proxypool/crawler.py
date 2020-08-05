@@ -1,3 +1,4 @@
+import re
 import logging
 import random
 import time
@@ -16,6 +17,8 @@ headers = {
     'Accept-Encoding': 'gzip, deflate, sdch',
     'Accept-Language': 'en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7'
 }
+
+PROXY_PATTERN = re.compile('[1-9]\d{0,2}\.[1-9]\d{0,2}\.[1-9]\d{0,2}\.[1-9]\d{0,2}:\d+')
 
 
 class ProxyMetaclass(type):
@@ -149,3 +152,18 @@ class Crawler(object, metaclass=ProxyMetaclass):
                     proxy = item[:p]
                     yield proxy
         self.logger.info('小幻代理: 共爬取 %d 条代理', count)
+
+
+    def crawl_free_proxy_list_net(self):
+        """
+        抓取https://free-proxy-list.net上面的地址.
+        :return: 返回代理字符串，格式为'ip地址:端口'
+        """
+        base_url = 'https://free-proxy-list.net'
+        html = self.get_page(url)
+        if html:
+            items = re.findall(PROXY_PATTERN, html, flags=re.A)
+            for i in items:
+                yield i
+        self.logger.info(f'free-proxy-list.net: got {len(items)} proxies.')
+
