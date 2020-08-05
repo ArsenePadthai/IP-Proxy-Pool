@@ -156,14 +156,40 @@ class Crawler(object, metaclass=ProxyMetaclass):
 
     def crawl_free_proxy_list_net(self):
         """
-        抓取https://free-proxy-list.net上面的地址.
-        :return: 返回代理字符串，格式为'ip地址:端口'
+        Crawl from free-proxy-list.net.
+        :return: string. xxx.xxx.xxx.xxx:xxxxx
         """
         base_url = 'https://free-proxy-list.net'
         html = self.get_page(url)
+        count = 0
         if html:
             items = re.findall(PROXY_PATTERN, html, flags=re.A)
             for i in items:
+                count += 1
                 yield i
-        self.logger.info(f'free-proxy-list.net: got {len(items)} proxies.')
+        self.logger.info(f'free-proxy-list.net: got {count} proxies.')
 
+
+    def crawl_proxyrack():
+        """
+        Crawl from www.proxyrack.com.
+        :return: string. xxx.xxx.xxx.xxx:xxxxx
+        """
+        base_url = "https://www.proxyrack.com/proxyfinder/proxies.json"
+        perPage = 100
+        online = -1
+        count = 0
+        for i in range(0, 10):
+            offset = i * perPage
+            payload = {
+                'sorts[online]': online,
+                'perPage': perPage,
+                'offset': offset
+            }
+            res = requests.get(base_url, params=payload)
+            if res.status_code == 200:
+                items = res.json().get("records")
+                for _ in items:
+                    count += 1
+                    yield _['ip'] + ':' + _['port']
+        self.logger.info(f'www.proxyrack.com: got {count} proxies.')
