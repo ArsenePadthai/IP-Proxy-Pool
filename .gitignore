@@ -5,3 +5,6 @@ data/
 *.log
 *.pyc
 .pytest_cache/
+redis.conf
+docker-compose.yml
+proxypool/settings.py
