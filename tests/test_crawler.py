@@ -32,21 +32,14 @@ class CrawlerTest(unittest.TestCase):
         except StopIteration:
             return count
 
-    def test_crawl_xicidaili(self):
-        proxies = self.crawler.crawl_xicidaili(max_page=1)
+    def test_crawl_freeproxylist(self):
+        proxies = self.crawler.crawl_free_proxy_list_net()
         self.assertGreater(self.get_number_of_proxies(proxies), 0)
 
-    def test_crawl_ip3366(self):
-        proxies = self.crawler.crawl_ip3366()
+    def test_crawl_proxyrack(self):
+        proxies = self.crawler.crawl_proxyrack()
         self.assertGreater(self.get_number_of_proxies(proxies), 0)
 
-    def test_crawl_qiyun(self):
-        proxies = self.crawler.crawl_qiyun(max_page=1)
-        self.assertGreater(self.get_number_of_proxies(proxies), 0)
-
-    def test_crawl_xiaohuan(self):
-        proxies = self.crawler.crawl_xiaohuan()
-        self.assertGreater(self.get_number_of_proxies(proxies), 0)
 
 
 if __name__ == '__main__':
