@@ -3,6 +3,9 @@ import random
 import requests
 from bs4 import BeautifulSoup
 from random_useragent.random_useragent import Randomize
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+from selenium.common.exceptions import NoSuchElementException
+from selenium import webdriver
 from base import Proxy
 
 r_agent = Randomize()
@@ -71,11 +74,34 @@ class Crawler(object, metaclass=ProxyMetaclass):
                 yield Proxy(prefix, proxy[0], proxy[1], "FreeProxyListNet")
 
 
+    def crawl_free_proxy_list_net2(self):
+        """
+        Crawler from freeproxylists.net
+        :return: string. http://xxx.xxx.xxx.xxx:xxxx__FreeProxyListNet2 or https://...
+        """
+        driver = webdriver.Remote(command_executor='http://127.0.0.1:8910', desired_capabilities=DesiredCapabilities.PHANTOMJS)
+        # country=all, port=all, protocol=all, anonymity=high, uptime>60%
+        driver.get('https://freeproxylists.net/?c=&pt=&pr=&a%5B%5D=2&u=60')
+        driver.implicitly_wait(2)
+
+        for row in driver.find_elements_by_xpath('//table/tbody/tr'):
+            if row.get_attribute('class') not in ("Odd", "Even"):
+                continue
+            else:
+                try:
+                    cells = row.find_elements_by_tag_name("td")
+                    ip = cells[0].find_element_by_tag_name("a").text
+                    port = cells[1].text
+                    prefix = cells[2].text.lower()
+                    yield Proxy(prefix, ip, port, "FreeProxyListNet2")
+                except NoSuchElementException as e:
+                    continue
+
+        driver.quit()
+
+
 if __name__ == "__main__":
     a = Crawler()
-    for i in a.crawl_free_proxy_list_net():
+#    for i in a.crawl_free_proxy_list_net():
+    for i in a.crawl_free_proxy_list_net2():
         print(i)
-        
-
-
-
