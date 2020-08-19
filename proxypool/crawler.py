@@ -6,7 +6,7 @@ from random_useragent.random_useragent import Randomize
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.common.exceptions import NoSuchElementException
 from selenium import webdriver
-from base import Proxy
+from proxypool.base import Proxy
 
 r_agent = Randomize()
 platform = ['windows', 'mac', 'linux']

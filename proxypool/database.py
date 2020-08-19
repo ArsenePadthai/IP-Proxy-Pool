@@ -4,7 +4,7 @@ import redis
 
 from proxypool.error import PoolEmptyError
 from proxypool.settings import REDIS_HOST, REDIS_PORT, REDIS_PASSWORD, REDIS_KEY, LOCK_KEY
-from proxypool.settings import MAX_SCORE, MIN_SCORE, INITIAL_SCORE, DECREASE_SCORE
+from proxypool.settings import MAX_SCORE, MIN_SCORE, INITIAL_SCORE, DECREASE_SCORE, POOL_UPPER_THRESHOLD
 from random import choice
 
 
@@ -24,11 +24,15 @@ class RedisClient:
         self.redis = redis.StrictRedis(host=host, port=port, password=password, decode_responses=True)
         self.logger = logging.getLogger('main.redis')
         self.pipe = self.redis.pipeline(transaction=True)
+        self.size = POOL_UPPER_THRESHOLD
+
+    def is_over_threshold(self):
+        return self.redis.get_proxy_count() >= self.size
+
 
     def add_proxies(self, proxies, score=INITIAL_SCORE, key=REDIS_KEY):
         """
-        使用管道，批量向数据库中添加代理数据，将其分数设置为最高
-
+        Add bulk proxies to the redis pipeline, setting score of each proxy to initial score.
         :param proxies: 代理
         :param score: 分数
         :param key: 键名
