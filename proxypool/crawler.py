@@ -79,29 +79,23 @@ class Crawler(object, metaclass=ProxyMetaclass):
         Crawler from freeproxylists.net
         :return: string. http://xxx.xxx.xxx.xxx:xxxx__FreeProxyListNet2 or https://...
         """
-        driver = webdriver.Remote(command_executor='http://127.0.0.1:8910', desired_capabilities=DesiredCapabilities.PHANTOMJS)
+        driver = webdriver.Remote(command_executor='http://127.0.0.1:8910',
+                desired_capabilities=DesiredCapabilities.PHANTOMJS)
         # country=all, port=all, protocol=all, anonymity=high, uptime>60%
         driver.get('https://freeproxylists.net/?c=&pt=&pr=&a%5B%5D=2&u=60')
         driver.implicitly_wait(2)
-
-        for row in driver.find_elements_by_xpath('//table/tbody/tr'):
-            if row.get_attribute('class') not in ("Odd", "Even"):
-                continue
-            else:
-                try:
-                    cells = row.find_elements_by_tag_name("td")
-                    ip = cells[0].find_element_by_tag_name("a").text
-                    port = cells[1].text
-                    prefix = cells[2].text.lower()
-                    yield Proxy(prefix, ip, port, "FreeProxyListNet2")
-                except NoSuchElementException as e:
-                    continue
-
+        html = driver.page_source
         driver.quit()
 
+        page = BeautifulSoup(html, 'html.parser')
+        table = page.find_all("table")[1]
 
-if __name__ == "__main__":
-    a = Crawler()
-#    for i in a.crawl_free_proxy_list_net():
-    for i in a.crawl_free_proxy_list_net2():
-        print(i)
+        for row in table.find("tbody").find_all("tr")[1:]:
+            tds = row.find_all("td")
+            if len(tds) < 2:
+                continue
+            ip = tds[0].find("a").string
+            port = tds[1].string
+            prefix = tds[2].string.lower()
+            yield Proxy(prefix, ip, port, "FreeProxyListNet2")
+
