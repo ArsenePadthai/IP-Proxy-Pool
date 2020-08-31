@@ -33,12 +33,13 @@ class CrawlerTest(unittest.TestCase):
             return count
 
     def test_crawl_freeproxylist(self):
-        proxies = self.crawler.crawl_free_proxy_list_net()
-        self.assertGreater(self.get_number_of_proxies(proxies), 0)
+        proxies = [p for p in self.crawler.crawl_free_proxy_list_net()]
+        self.assertGreater(len(proxies), 0)
 
-    def test_crawl_proxyrack(self):
-        proxies = self.crawler.crawl_proxyrack()
-        self.assertGreater(self.get_number_of_proxies(proxies), 0)
+    def test_crawl_freeproxylist2(self):
+        pass
+#        proxies = [p for p in self.crawler.crawl_free_proxy_list_net2()]
+#        self.assertGreater(len(proxies), 0)
 
 
 

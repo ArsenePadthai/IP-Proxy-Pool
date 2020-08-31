@@ -1,15 +1,16 @@
 import logging
 
+from random import choice
 import redis
 
 from proxypool.error import PoolEmptyError
 from proxypool.settings import REDIS_HOST, REDIS_PORT, REDIS_PASSWORD, REDIS_KEY, LOCK_KEY
 from proxypool.settings import MAX_SCORE, MIN_SCORE, INITIAL_SCORE, DECREASE_SCORE, POOL_UPPER_THRESHOLD
-from random import choice
 
 
 class RedisClient:
     """
+    A customized redis client class.
     Redis客户端类，用于连接数据库对数据进行增删查改等操作
     """
 
@@ -27,19 +28,19 @@ class RedisClient:
         self.size = POOL_UPPER_THRESHOLD
 
     def is_over_threshold(self):
-        return self.redis.get_proxy_count() >= self.size
+        return self.get_proxy_count() >= self.size
 
 
     def add_proxies(self, proxies, score=INITIAL_SCORE, key=REDIS_KEY):
         """
-        Add bulk proxies to the redis pipeline, setting score of each proxy to initial score.
+        Add bulk proxies to the redis pipeline, setting score of each proxy to initial score. But not to update scores of existing proxies.
         :param proxies: 代理
         :param score: 分数
         :param key: 键名
         :return: 存储代理数量
         """
         for proxy in proxies:
-            self.pipe.zadd(key, {proxy: score})
+            self.pipe.zadd(key, {proxy.__str__(): score}, nx=True)
         saved = sum(self.pipe.execute())
         return saved
 
@@ -86,18 +87,15 @@ class RedisClient:
 
     def set_max_score(self, proxy):
         """
-        将代理设置为MAX_SCORE
-
-        :param proxy: 代理
-        :return: 设置结果
+        Add/update proxy score with maximum score.
+        :param proxy: 
+        :return: 
         """
         return self.redis.zadd(REDIS_KEY, {proxy: MAX_SCORE})
 
     def get_proxy_count(self):
         """
-        获取数据库中的代理数量
-
-        :return: 数量
+        :return: count result of all proxies.
         """
         return self.redis.zcard(REDIS_KEY)
 
@@ -144,3 +142,10 @@ class RedisClient:
         :return: 成功释放返回True，否则返回False
         """
         return self.redis.get(key) == '0' and self.redis.incr(key) == 1
+
+
+if __name__ == "__main__":
+    r = RedisClient(host='127.0.0.1')
+    for i in r.get_batch(0, 20):
+        print(i)
+

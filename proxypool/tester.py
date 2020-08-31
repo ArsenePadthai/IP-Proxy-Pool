@@ -16,18 +16,15 @@ class Tester:
     @staticmethod
     def check_anonymity(proxy, result):
         """
-        检测代理是否为高匿代理
-
-        :param proxy: 代理
-        :param result: 测试URL返回的json结果
-        :return: 若为高匿代理返回True，否则返回False
+        Check if a specific proxy is anonymous
+        :param proxy: ip address of the proxy.
+        :param result: result acquired from test url.
+        :return: Boolean
         """
-        ret = False
+        # If it is elite proxy, then its ip should appear in origin field
+        # TODO to be confirm
         origin = result.get('origin').split(', ')
-        # 若为高匿代理会返回两个相同的代理ip
-        if len(origin) == 2 and proxy in origin:
-            ret = True
-        return ret
+        return proxy in origin
 
     async def test_single_proxy(self, proxy, timeout=7.0):
         """
@@ -54,7 +51,7 @@ class Tester:
 
     def run(self, sleep_time=5):
         """
-        批量测试代理
+        Start batch testing...
 
         :param sleep_time: 批测试间隔时间，默认为5秒
         """
@@ -66,6 +63,8 @@ class Tester:
                 stop = min(i + BATCH_TEST_SIZE, count)
                 try:
                     test_proxies = self.redis.get_batch(start, stop)
+                    pure_proxies = [tp.split('__')[0] for tp in test_proxies]
+                    #TODO
                     loop = asyncio.get_event_loop()
                     tasks = [self.test_single_proxy(proxy) for proxy in test_proxies]
                     loop.run_until_complete(asyncio.wait(tasks))

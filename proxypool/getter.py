@@ -6,40 +6,52 @@ from proxypool.settings import *
 
 
 class Getter:
-    """代理获取器
-
-    运行爬虫从各代理网站爬取代理数据，并存储到redis数据库
+    """
+    A class that can collect ip proxies and put them into redis
     """
 
     def __init__(self):
-        self.redis = RedisClient()
+        self.redis = RedisClient(host='127.0.0.1')
+        # TODO
+        # self.redis = RedisClient()
         self.crawler = Crawler()
         self.logger = logging.getLogger('main.getter')
 
-    def is_over_threshold(self):
+
+    def collect(self):
         """
-        判断是否达到了代理池限制
-        :return: 若代理数量达到上限，则返回True，否则返回False
+        Collect proxies into a list using the functions from self.crawler.
+        return: a list of proxies
         """
-        return self.redis.get_proxy_count() >= POOL_UPPER_THRESHOLD
+        ans = []
+        for callback_label in range(self.crawler.__CrawlFuncCount__):
+            try:
+                count = 0
+                self.logger.info(f"Start crawling with function {callback_label}...")
+                callback = self.crawler.__CrawlFunc__[callback_label]
+                proxies = self.crawler.get_proxies(callback)
+            except Exception as e:
+                self.logger.exception(str(e.args))
+            else:
+                count += len(proxies)
+                self.logger.info(f'Got {count} proxies with function {callback_label}')
+                ans.extend(proxies)
+        return ans
+
 
     def run(self):
         """
-        调用爬虫中的一系列函数，爬取代理，并将代理保存到数据库
-        :return: 返回爬取的所有代理数量
+        Kick off collecting and put them into redis
         """
-        if not self.is_over_threshold() and self.redis.acquire_lock():
-            self.logger.info('开始爬取代理')
-            count = 0
-            for callback_label in range(self.crawler.__CrawlFuncCount__):
-                try:
-                    callback = self.crawler.__CrawlFunc__[callback_label]
-                    proxies = self.crawler.get_proxies(callback)
-                except Exception as e:
-                    self.logger.exception(str(e.args))
-                else:
-                    count += len(proxies)
-                    self.redis.add_proxies(proxies)
-
+        if not self.redis.is_over_threshold() and self.redis.acquire_lock():
+            ret = self.collect()
+            self.redis.add_proxies(ret)
             self.redis.release_lock()
-            self.logger.info('共爬取：%d条代理', count)
+        else:
+            self.logger.info("Failed to add collected proxies into database due to either is_over_threshold or failed to acquire_lock")
+            self.redis.release_lock()
+
+
+if __name__ == "__main__":
+    getter = Getter()
+    getter.run()

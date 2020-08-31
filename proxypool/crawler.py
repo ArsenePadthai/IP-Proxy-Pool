@@ -74,28 +74,36 @@ class Crawler(object, metaclass=ProxyMetaclass):
                 yield Proxy(prefix, proxy[0], proxy[1], "FreeProxyListNet")
 
 
-    def crawl_free_proxy_list_net2(self):
-        """
-        Crawler from freeproxylists.net
-        :return: string. http://xxx.xxx.xxx.xxx:xxxx__FreeProxyListNet2 or https://...
-        """
-        driver = webdriver.Remote(command_executor='http://127.0.0.1:8910',
-                desired_capabilities=DesiredCapabilities.PHANTOMJS)
-        # country=all, port=all, protocol=all, anonymity=high, uptime>60%
-        driver.get('https://freeproxylists.net/?c=&pt=&pr=&a%5B%5D=2&u=60')
-        driver.implicitly_wait(2)
-        html = driver.page_source
-        driver.quit()
+#    def crawl_free_proxy_list_net2(self):
+#        """
+#        Crawler from freeproxylists.net
+#        :return: string. http://xxx.xxx.xxx.xxx:xxxx__FreeProxyListNet2 or https://...
+#        """
+#        chrome_options = webdriver.ChromeOptions()
+#        chrome_options.add_argument('--headless')
+#        chrome_options.add_argument('--disable-gpu')
+#        driver = webdriver.Chrome(chrome_options=chrome_options, executable_path = '/home/ubuntu/chromedriver')
+#
+#        # country=all, port=all, protocol=all, anonymity=high, uptime>60%
+#        driver.get('https://freeproxylists.net/?c=&pt=&pr=&a%5B%5D=2&u=60')
+#        html = driver.page_source
+#        driver.quit()
+#
+#        page = BeautifulSoup(html, 'html.parser')
+#        table = page.find_all("table")[1]
+#
+#        for row in table.find("tbody").find_all("tr")[1:]:
+#            tds = row.find_all("td")
+#            if len(tds) < 2:
+#                continue
+#            ip = tds[0].find("a").string
+#            port = tds[1].string
+#            prefix = tds[2].string.lower()
+#            yield Proxy(prefix, ip, port, "FreeProxyListNet2")
 
-        page = BeautifulSoup(html, 'html.parser')
-        table = page.find_all("table")[1]
 
-        for row in table.find("tbody").find_all("tr")[1:]:
-            tds = row.find_all("td")
-            if len(tds) < 2:
-                continue
-            ip = tds[0].find("a").string
-            port = tds[1].string
-            prefix = tds[2].string.lower()
-            yield Proxy(prefix, ip, port, "FreeProxyListNet2")
+if __name__ == "__main__":
+    a = Crawler()
+    for i in a.crawl_free_proxy_list_net():
+        print(i)
 
