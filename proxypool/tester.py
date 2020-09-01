@@ -1,3 +1,4 @@
+import sys
 import asyncio
 import logging
 
@@ -10,7 +11,9 @@ from proxypool.settings import *
 
 class Tester:
     def __init__(self):
-        self.redis = RedisClient()
+        # TODO recover
+        # self.redis = RedisClient()
+        self.redis = RedisClient(host='127.0.0.1')
         self.logger = logging.getLogger('main.tester')
 
     @staticmethod
@@ -36,10 +39,13 @@ class Tester:
         async with aiohttp.ClientSession() as session:
             if isinstance(proxy, bytes):
                 proxy = proxy.decode('utf-8')
-            real_proxy = 'http://' + proxy
+            real_proxy = proxy.split('__')[0]
+            if real_proxy.startswith('https'):
+                return
             try:
                 async with session.get(TEST_URL, proxy=real_proxy, timeout=timeout) as response:
                     if response.status == 200:
+                        self.logger.info(f'Congrats!!!!!!!!!!! {proxy} is still alive!')
                         json_result = await response.json()
                         if self.check_anonymity(proxy, json_result):
                             self.redis.set_max_score(proxy)
@@ -47,28 +53,37 @@ class Tester:
                         self.redis.degrade_proxy(proxy)
             except Exception as e:
                 self.redis.degrade_proxy(proxy)
-                raise e
+                self.logger.info(f'Life sucks! {proxy} failed to pass the test!')
 
-    def run(self, sleep_time=5):
+    def main(self, sleep_time=5):
         """
         Start batch testing...
-
-        :param sleep_time: 批测试间隔时间，默认为5秒
+        :param sleep_time: wait sleep_time before next round of batch testing
         """
+        try:
+            self.redis.release_lock()
+        except:
+            self.logger.info('can not release lock')
         if self.redis.acquire_lock():
-            self.logger.info('开始测试代理')
             count = self.redis.get_proxy_count()
             for i in range(0, count, BATCH_TEST_SIZE):
+                self.logger.info('Start testing proxies...{start + 1} to {stop}')
                 start = i
                 stop = min(i + BATCH_TEST_SIZE, count)
                 try:
-                    test_proxies = self.redis.get_batch(start, stop)
-                    pure_proxies = [tp.split('__')[0] for tp in test_proxies]
-                    #TODO
                     loop = asyncio.get_event_loop()
+                    test_proxies = self.redis.get_batch(start, stop)
                     tasks = [self.test_single_proxy(proxy) for proxy in test_proxies]
                     loop.run_until_complete(asyncio.wait(tasks))
                     time.sleep(sleep_time)
-                except Exception:
-                    self.logger.error('测试第 %d-%d个代理出错', start + 1, stop)
+                except Exception as e:
+                    self.logger.error(f'测试第 {start + 1}-{stop}个代理出错')
             self.redis.release_lock()
+
+
+if __name__ == "__main__":
+    t = Tester()
+    handler = logging.StreamHandler(sys.stdout)
+    t.logger.setLevel(logging.DEBUG)
+    t.logger.addHandler(handler)
+    t.main()
