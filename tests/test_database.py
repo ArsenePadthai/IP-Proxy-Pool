@@ -4,10 +4,18 @@ from proxypool.database import RedisClient
 
 
 class TestRedisClient(TestCase):
+    def setUp(self):
+        self.rc = RedisClient(host='127.0.0.1', port=6379, password='Wsxcv135')
+
     def test_add_proxies(self):
-        redis = RedisClient(host='127.0.0.1', port=6379, password='Wsxcv135')
         test_data = [str(i) for i in range(100)]
-        redis.pipe.delete('test')
-        redis.pipe.execute()
-        ret = redis.add_proxies(test_data, key='test')
+        self.rc.pipe.delete('test')
+        self.rc.pipe.execute()
+        ret = self.rc.add_proxies(test_data, key='test')
         self.assertEqual(len(test_data), ret)
+
+    def test_set_max_score(self):
+        self.rc.redis.delete('test')
+        self.rc.set_max_score('12345', rd_key='test')
+        self.assertEqual(100, self.rc.redis.zscore(name='test', value='12345'))
+

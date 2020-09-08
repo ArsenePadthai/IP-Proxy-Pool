@@ -54,7 +54,7 @@ class Crawler(object, metaclass=ProxyMetaclass):
 
     def crawl_free_proxy_list_net(self):
         """
-        Crawl from free-proxy-list.net.
+        Crawl from free-proxy-list.net. We only collect elite proxy with http protocol.
         :return: string. http://xxx.xxx.xxx.xxx:xxxx__FreeProxyListNet or https://...
         """
         base_url = 'https://free-proxy-list.net'
@@ -69,9 +69,8 @@ class Crawler(object, metaclass=ProxyMetaclass):
         table = tables[0]
         for row in table.find_all('tr'):
             proxy = [td.string for td in row.find_all('td')]
-            if proxy and proxy[4] == "elite proxy":
-                prefix = 'http' if proxy[6] == "no" else "https"
-                yield Proxy(prefix, proxy[0], proxy[1], "FreeProxyListNet")
+            if proxy and proxy[4] == "elite proxy" and proxy[6] == "no":
+                yield Proxy('http', proxy[0], proxy[1], "FreeProxyListNet")
 
 
 #    def crawl_free_proxy_list_net2(self):

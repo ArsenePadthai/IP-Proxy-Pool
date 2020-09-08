@@ -11,13 +11,11 @@ from proxypool.settings import *
 
 class Tester:
     def __init__(self):
-        # TODO recover
-        # self.redis = RedisClient()
-        self.redis = RedisClient(host='127.0.0.1')
+        self.redis = RedisClient()
         self.logger = logging.getLogger('main.tester')
 
     @staticmethod
-    def check_anonymity(proxy, result):
+    def check_anonymity(proxy_ip, result):
         """
         Check if a specific proxy is anonymous
         :param proxy: ip address of the proxy.
@@ -27,7 +25,7 @@ class Tester:
         # If it is elite proxy, then its ip should appear in origin field
         # TODO to be confirm
         origin = result.get('origin').split(', ')
-        return proxy in origin
+        return proxy_ip in origin
 
     async def test_single_proxy(self, proxy, timeout=7.0):
         """
@@ -40,20 +38,24 @@ class Tester:
             if isinstance(proxy, bytes):
                 proxy = proxy.decode('utf-8')
             real_proxy = proxy.split('__')[0]
+            # aiohttp does not support https proxy yet
             if real_proxy.startswith('https'):
                 return
+            ip = real_proxy.split(':')[1][2:]
             try:
                 async with session.get(TEST_URL, proxy=real_proxy, timeout=timeout) as response:
                     if response.status == 200:
-                        self.logger.info(f'Congrats!!!!!!!!!!! {proxy} is still alive!')
                         json_result = await response.json()
-                        if self.check_anonymity(proxy, json_result):
+                        self.logger.debug(ip)
+                        if self.check_anonymity(ip, json_result):
+                            self.logger.info(f'Congrats!! {proxy} is elite proxy!')
                             self.redis.set_max_score(proxy)
                     else:
                         self.redis.degrade_proxy(proxy)
             except Exception as e:
                 self.redis.degrade_proxy(proxy)
                 self.logger.info(f'Life sucks! {proxy} failed to pass the test!')
+                self.logger.debug(str(e))
 
     def main(self, sleep_time=5):
         """
@@ -67,9 +69,9 @@ class Tester:
         if self.redis.acquire_lock():
             count = self.redis.get_proxy_count()
             for i in range(0, count, BATCH_TEST_SIZE):
-                self.logger.info('Start testing proxies...{start + 1} to {stop}')
                 start = i
                 stop = min(i + BATCH_TEST_SIZE, count)
+                self.logger.info(f'Start testing proxies...{start + 1} to {stop}')
                 try:
                     loop = asyncio.get_event_loop()
                     test_proxies = self.redis.get_batch(start, stop)
@@ -77,13 +79,14 @@ class Tester:
                     loop.run_until_complete(asyncio.wait(tasks))
                     time.sleep(sleep_time)
                 except Exception as e:
-                    self.logger.error(f'测试第 {start + 1}-{stop}个代理出错')
+                    self.logger.error(f'Something went wrong then when we were testing from {start + 1} to {stop}')
+                    self.logger.error(str(e))
             self.redis.release_lock()
 
 
-if __name__ == "__main__":
-    t = Tester()
-    handler = logging.StreamHandler(sys.stdout)
-    t.logger.setLevel(logging.DEBUG)
-    t.logger.addHandler(handler)
-    t.main()
+# if __name__ == "__main__":
+#     t = Tester()
+#     handler = logging.StreamHandler(sys.stdout)
+#     t.logger.setLevel(logging.DEBUG)
+#     t.logger.addHandler(handler)
+#     t.main()

@@ -45,6 +45,8 @@ class Getter:
         """
         if not self.redis.is_over_threshold() and self.redis.acquire_lock():
             ret = self.collect()
+            # TODO
+            print(ret)
             self.redis.add_proxies(ret)
             self.redis.release_lock()
         else:
@@ -55,3 +57,4 @@ class Getter:
 if __name__ == "__main__":
     getter = Getter()
     getter.run()
+    print('xxxxxxx')

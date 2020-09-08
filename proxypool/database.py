@@ -85,13 +85,13 @@ class RedisClient:
         """
         return not (self.redis.zscore(REDIS_KEY, proxy) is None)
 
-    def set_max_score(self, proxy):
+    def set_max_score(self, proxy, rd_key=REDIS_KEY):
         """
         Add/update proxy score with maximum score.
         :param proxy: 
         :return: 
         """
-        return self.redis.zadd(REDIS_KEY, {proxy: MAX_SCORE})
+        return self.redis.zadd(rd_key, {proxy: MAX_SCORE})
 
     def get_proxy_count(self):
         """
