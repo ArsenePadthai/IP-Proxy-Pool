@@ -43,3 +43,12 @@ content = client.page_source.encode('utf-8')
 print (content)
 client.quit()
 ```
+
+
+
+
+
+
+## Blueprint
+1. Learn more about python multi-processing
+2. Modularize tester, filtering bad proxies before putting them into redis.

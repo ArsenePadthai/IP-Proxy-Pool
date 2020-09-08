@@ -20,17 +20,17 @@ class Scheduler:
     @staticmethod
     def schedule_tester(cycle=TESTER_CYCLE):
         """
-        定时测试代理
+        Run tester.main periodically with interval <cycle> seconds.
         """
         tester = Tester()
         while True:
-            tester.run()
+            tester.main()
             time.sleep(cycle)
 
     @staticmethod
     def schedule_getter(cycle=GETTER_CYCLE):
         """
-        定时获取代理
+        Run crawler periodically with interval <cycle> seconds.
         """
         getter = Getter()
         while True:
