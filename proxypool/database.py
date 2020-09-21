@@ -51,12 +51,12 @@ class RedisClient:
         :return: 随机代理
         """
         # 获取分数大于等于100的代理
-        result = self.redis.zrangebyscore(REDIS_KEY, MAX_SCORE, '+inf')
+        result = self.redis.zrevrangebyscore(REDIS_KEY, '+inf', MAX_SCORE, withscores=True)
         if len(result):
             return choice(result)
         else:
             # 获无符合条件的代理，则获取分数大于等于初始分数的代理
-            result = self.redis.zrevrangebyscore(REDIS_KEY, '+inf', INITIAL_SCORE)
+            result = self.redis.zrevrangebyscore(REDIS_KEY, '+inf', INITIAL_SCORE, withscores=True)
             if len(result):
                 return choice(result)
             else:
