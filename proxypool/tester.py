@@ -46,7 +46,6 @@ class Tester:
                 async with session.get(TEST_URL, proxy=real_proxy, timeout=timeout) as response:
                     if response.status == 200:
                         json_result = await response.json()
-                        self.logger.debug(ip)
                         if self.check_anonymity(ip, json_result):
                             self.logger.info(f'Congrats!! {proxy} is elite proxy!')
                             self.redis.set_max_score(proxy)
@@ -84,9 +83,9 @@ class Tester:
             self.redis.release_lock()
 
 
-# if __name__ == "__main__":
-#     t = Tester()
-#     handler = logging.StreamHandler(sys.stdout)
-#     t.logger.setLevel(logging.DEBUG)
-#     t.logger.addHandler(handler)
-#     t.main()
+#if __name__ == "__main__":
+#    t = Tester()
+#    handler = logging.StreamHandler(sys.stdout)
+#    t.logger.setLevel(logging.DEBUG)
+#    t.logger.addHandler(handler)
+#    t.main()
