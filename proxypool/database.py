@@ -76,6 +76,12 @@ class RedisClient:
         else:
             return self.redis.zrem(REDIS_KEY, proxy)
 
+    def _clear_key_for_test(self, key_name):
+        """
+        Only used for test
+        """
+        self.redis.delete(key_name)
+
     def exists(self, proxy):
         """
         判断数据库中是否存在某代理
