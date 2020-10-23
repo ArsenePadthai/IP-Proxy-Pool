@@ -5,7 +5,7 @@ from proxypool.database import RedisClient
 
 class TestRedisClient(TestCase):
     def setUp(self):
-        self.rc = RedisClient(host='127.0.0.1', port=6379, password='Wsxcv135')
+        self.rc = RedisClient(host='127.0.0.1', port=6379, password='wsxcv123')
 
     def test_add_proxies(self):
         test_data = [str(i) for i in range(100)]

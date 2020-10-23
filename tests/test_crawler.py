@@ -5,9 +5,8 @@ from proxypool.crawler import Crawler
 
 # TODO: Use decorator to refactor the code
 class CrawlerTest(unittest.TestCase):
-    """代理获取爬虫测试类
-
-    测试各个代理源网站能否正常获取代理
+    """
+    Check if can successfully crawl the ip
     """
 
     crawler = Crawler()
@@ -35,11 +34,6 @@ class CrawlerTest(unittest.TestCase):
     def test_crawl_freeproxylist(self):
         proxies = [p for p in self.crawler.crawl_free_proxy_list_net()]
         self.assertGreater(len(proxies), 0)
-
-    def test_crawl_freeproxylist2(self):
-        pass
-#        proxies = [p for p in self.crawler.crawl_free_proxy_list_net2()]
-#        self.assertGreater(len(proxies), 0)
 
 
 
